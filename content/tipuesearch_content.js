@@ -1,1 +1,1 @@
-var tipuesearch = {"pages": [{'title': 'About', 'text': '\n \n', 'tags': '', 'url': 'About.html'}]};
+var tipuesearch = {"pages": [{'title': 'About', 'text': '', 'tags': '', 'url': 'About.html'}, {'title': 'work', 'text': '', 'tags': '', 'url': 'work.html'}, {'title': 'w1', 'text': 'Blog \n LEO是存在Config裡 內容是在Markdown 轉html 後是在blog裡 Ctrl i加新節點 Ctrl r往右 Ctrl l往左 Ctrl u往上 Ctrl d往下 @path是設定路徑 @edit 編輯它只能一層 @clean可以多層 @others可以多層管理 \n 更改使用者和名稱 \n \n local-blog複製指令檢查slug有無相同 \n \n 更改為網站網址 \n \n \n \n', 'tags': '', 'url': 'w1.html'}]};
