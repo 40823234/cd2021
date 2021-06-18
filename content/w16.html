@@ -140,11 +140,151 @@ img.add_border {
 <p><span>Onshape零件和場景設定 零件下載:<a href="./../downloads/MTB_ROBOT.stl">MTB_ROBOT.stl</a></span></p>
 <p><iframe allowfullscreen="allowfullscreen" height="300" src="//www.youtube.com/embed/em8Vtehdus8" width="500"></iframe></p>
 <p><span>MTB_Robot加入吸盤和鍵盤控制方塊取放 檔案下載:<a href="./../downloads/鍵盤控制.7z">鍵盤控制.7z</a></span></p>
+<p><span>鍵盤控制ascii碼對應表:<a href="https://tool.oschina.net/commons?type=4">https://tool.oschina.net/commons?type=4</a></span></p>
 <p><iframe allowfullscreen="allowfullscreen" height="300" src="//www.youtube.com/embed/TZvoD196j5o" width="500"></iframe></p>
 <p><span>迴圈方塊取放和Python remote API 檔案下載:<a href="./../downloads/迴圈和PYTHON.7z">迴圈和PYTHON.7z</a></span></p>
 <p><span><iframe allowfullscreen="allowfullscreen" height="300" src="//www.youtube.com/embed/mPjhXKoKVSk" width="500"></iframe></span></p>
-<p></p>
-<p></p><br />W15 << <a href='W15.html'>Previous</a> </div>
+<p><span>迴圈執行程式碼:</span></p>
+<pre class="brush:lua;auto-links:false;toolbar:false" contenteditable="false"></pre>
+<pre class="brush:lua;auto-links:false;toolbar:false" contenteditable="false">function moving(x,y)--[moving (x,y)為角度計算利用求出面積來得到所需邊長在使用三角函數求所需角度]--
+    a=0.47
+    b=0.4
+    c=math.pow((math.pow(x,2)+math.pow(y,2)),0.5)
+    s=(a+b+c)/2
+    area=math.pow((s*(s-a)*(s-b)*(s-c)),0.5)
+    h=2*area/c
+    deg1_base=math.atan(x/y)
+    if x&lt;0 and y&lt;0 then
+        deg1_base=deg1_base+math.pi
+    end
+    deg1_tri=math.asin(h/a)
+    deg1=deg1_base+deg1_tri
+    deg2=math.pi-(0.5*math.pi-deg1_tri)-math.acos(h/b)
+    deg3=deg2-deg1
+    sim.setJointTargetPosition(joint01,deg1)
+    sim.setJointTargetPosition(joint02,-deg2)
+    sim.setJointTargetPosition(joint03,deg3)
+end
+function sysCall_threadmain()
+    joint01=sim.getObjectHandle('MTB_axis1')--[設定名稱對應v-rep的軸]--
+    joint02=sim.getObjectHandle('MTB_axis2')
+    joint03=sim.getObjectHandle('MTB_axis3')
+    jointz=sim.getObjectHandle('MTB_axis4')
+    sim.setJointTargetPosition(joint01,0)--將軸的位置歸零
+    sim.setJointTargetPosition(joint02,0)
+    sim.setJointTargetPosition(joint03,0)
+    sim.setJointTargetPosition(jointz,0)
+    sim.setIntegerSignal("pad_switch",1)--吸盤1實為開啟0為關閉
+    sim.setJointTargetPosition(jointz,-0.07)--吸盤向下0.07
+    sim.wait(5)
+    sim.setJointTargetPosition(jointz,0)
+    while sim.getSimulationState()~=sim.simulation_advancing_abouttostopre do--迴圈執行以下動作while後為執行條件
+    moving(0.2,0.7)--將x=0.2y=0.7帶入moving副函式
+    sim.wait(5)--等待5秒
+    sim.setIntegerSignal("pad_switch",0)
+    print(0.2,0.7,0.05)
+    sim.wait(5)
+    sim.setIntegerSignal("pad_switch",1)
+    sim.setJointTargetPosition(jointz,-0.07)
+    sim.wait(5)
+    sim.setJointTargetPosition(jointz,0)
+    sim.wait(5)
+    moving(-0.3,-0.55)
+    sim.wait(2)
+    sim.setIntegerSignal("pad_switch",0)
+    print(-0.3,-0.55,0.05)
+    sim.wait(5)
+    sim.setIntegerSignal("pad_switch",1)
+    sim.setJointTargetPosition(jointz,-0.07)
+    sim.wait(5)
+    sim.setJointTargetPosition(jointz,0)
+    sim.wait(5)
+    end
+
+end
+</pre>
+<p>python程式碼:<br/><br/></p>
+<pre class="brush:py;auto-links:false;toolbar:false" contenteditable="false">import sim as vrep
+import math
+import random
+import time
+import math
+
+def moving(x,y):
+        a=0.47 #運算角度副程式
+        b=0.4
+        c=math.pow((math.pow(x,2)+math.pow(y,2)),0.5)
+        s=(a+b+c)/2
+        area=math.pow((s*(s-a)*(s-b)*(s-c)),0.5)
+        h=2*area/c
+        deg1_base=math.atan(x/y)
+        if x&lt;0 and y&lt;0 :
+            deg1_base=deg1_base+math.pi
+        deg1_tri=math.asin(h/a)
+        deg1=deg1_base+deg1_tri
+        deg2=math.pi-(0.5*math.pi-deg1_tri)-math.acos(h/b)
+        deg3=deg2-deg1
+        vrep.simxSetJointTargetPosition(clientID,joint01,deg1,opmode)#設定deg對應的軸
+        vrep.simxSetJointTargetPosition(clientID,joint02,-deg2,opmode)
+        vrep.simxSetJointTargetPosition(clientID,joint03,deg3,opmode)
+
+print ('Start')
+ 
+vrep.simxFinish(-1)
+ 
+clientID = vrep.simxStart('127.0.0.1', 19997, True, True, 5000, 5)
+
+if clientID != -1:
+    print ('Connected to remote API server')
+
+    res = vrep.simxAddStatusbarMessage(
+        clientID, "40823234",
+        vrep.simx_opmode_oneshot)
+    if res not in (vrep.simx_return_ok, vrep.simx_return_novalue_flag):
+        print("Could not add a message to the status bar.")
+
+
+    opmode = vrep.simx_opmode_oneshot_wait
+    STREAMING = vrep.simx_opmode_streaming
+
+
+    vrep.simxStartSimulation(clientID, opmode)
+    ret,joint01=vrep.simxGetObjectHandle(clientID,"MTB_axis1",opmode)#設定對應軸名稱
+    ret,joint02=vrep.simxGetObjectHandle(clientID,"MTB_axis2",opmode)
+    ret,joint03=vrep.simxGetObjectHandle(clientID,"MTB_axis3",opmode)
+    ret,joint04=vrep.simxGetObjectHandle(clientID,"MTB_axis4",opmode)
+    
+    vrep.simxSetJointTargetPosition(clientID,joint01,0,opmode)#軸位置歸零
+    vrep.simxSetJointTargetPosition(clientID,joint02,0,opmode)
+    vrep.simxSetJointTargetPosition(clientID,joint03,0,opmode)
+    vrep.simxSetIntegerSignal(clientID,"pad_switch",1,opmode)#吸盤開啟=1 關閉=0
+    vrep.simxSetJointTargetPosition(clientID,joint04,-0.07,opmode)
+    time.sleep(1)
+    vrep.simxSetJointTargetPosition(clientID,joint04,0,opmode)
+while True:#迴圈執行直到break it
+    moving(0.2,0.7)#0.2 0.7副程式運算
+    time.sleep(1)#停一秒
+    vrep.simxSetIntegerSignal(clientID,"pad_switch",0,opmode)
+    time.sleep(1)
+    vrep.simxSetIntegerSignal(clientID,"pad_switch",1,opmode)
+    vrep.simxSetJointTargetPosition(clientID,joint04,-0.07,opmode)
+    time.sleep(1)
+    vrep.simxSetJointTargetPosition(clientID,joint04,0,opmode)
+    time.sleep(1)
+    moving(-0.3,-0.55)
+    time.sleep(1)
+    vrep.simxSetIntegerSignal(clientID,"pad_switch",0,opmode)
+    time.sleep(1)
+    vrep.simxSetIntegerSignal(clientID,"pad_switch",1,opmode)
+    vrep.simxSetJointTargetPosition(clientID,joint04,-0.07,opmode)
+    time.sleep(1)
+    vrep.simxSetJointTargetPosition(clientID,joint04,0,opmode)
+    time.sleep(1)
+</pre>
+<p>40823214 教學紀錄影片:</p>
+<p><iframe allowfullscreen="allowfullscreen" height="300" src="//www.youtube.com/embed/GUUKSgN93eI" width="500"></iframe></p>
+<p><iframe allowfullscreen="allowfullscreen" height="300" src="//www.youtube.com/embed/gZd9KlVS9BI" width="500"></iframe></p>
+<p><iframe allowfullscreen="allowfullscreen" height="300" src="//www.youtube.com/embed/Zu_0BvZfxgQ" width="500"></iframe></p><br />W15 << <a href='W15.html'>Previous</a> </div>
         
     <!-- footer -->
       <div class="container">
